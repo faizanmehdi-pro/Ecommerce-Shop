@@ -73,7 +73,7 @@ def placeorder(request):
         'Order Placed',
         template,
         'settings.EMAIL_HOST_USER',
-        [user_email, 'EMAIL_HOST_USER'],
+        [user_email, 'settings.EMAIL_HOST_USER'],
     )
     return redirect('shop')
     context = {}
