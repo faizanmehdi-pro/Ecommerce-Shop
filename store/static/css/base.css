@@ -2,6 +2,12 @@ body{
 	background-color: hsl(0, 0%, 98%);
 }
 
+.hello-msg{
+    font-size: 18px;
+    color: #fff;
+    margin-right: 20px;
+}
+
 h1,h2,h3,h4,h5,h6{
 	color:hsl(0, 0%, 30%);
 }
@@ -13,13 +19,7 @@ h1,h2,h3,h4,h5,h6{
 	padding: 10px;
 }
 
-.thumbnail{
-	width: 100%;
-	height: 200px;
-	-webkit-box-shadow: -1px -3px 5px -2px rgba(214,214,214,1);
-    -moz-box-shadow: -1px -3px 5px -2px rgba(214,214,214,1);
-    box-shadow: -1px -3px 5px -2px rgba(214,214,214,1);
-}
+
 
 .product{
 	border-radius: 0 0 4px 4px;

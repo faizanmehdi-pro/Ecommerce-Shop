@@ -1,9 +1,15 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 import json
+from django.contrib.auth.forms import UserCreationForm
 from django.core.mail import EmailMessage
+from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .forms import *
 from .models import *
 
 
@@ -11,13 +17,13 @@ def index(request):
     context = {}
     return render(request, 'shop/shop.html', context)
 
-
+@login_required(login_url='login')
 def shop(request):
     products = Product.objects.all()
     context = {'products': products}
     return render(request, 'shop/shop.html', context)
 
-
+@login_required(login_url='login')
 def cart(request):
     # Authenticating the user
     if request.user.is_authenticated:
@@ -34,11 +40,6 @@ def cart(request):
 
     context = {'items': items, 'order': order}
     return render(request, 'shop/cart.html', context)
-
-
-def checkout(request):
-    context = {'items': items, 'order': order, 'cartItems': cartItems}
-    return render(request, 'shop/checkout.html', context)
 
 
 def updateItem(request):
@@ -66,20 +67,51 @@ def updateItem(request):
     return JsonResponse("Item is added", safe=False)
 
 
-def placeorder(request, uid):
-    template = render_to_string('shop/email_template', {'name': request.user.customer.name})
+def placeorder(request):
+    template = render_to_string('shop/email_template.html', {'name': request.user.customer.name})
 
-    email = EmailMessage(
+    send_mail(
         'Thank you for placing the order',
         template,
-        settings.EMAIL_HOST_USER,
-        [request.user.customer.email],
+        'faizanmehdi572@gmail.com',
+        ['faizanmehdi572@gmail.com'],
         )
-
-    email.fail.silently = False
-    email.send()
-
-    return redirect('shop')
-    context = {'customer': customer}
-
+    context = {}
     return render(request, 'shop/shop.html', context)
+
+
+def registerPage(request):
+    if request.user.is_authenticated:
+        return redirect('shop')
+    else:
+        form = CreateUserForm()
+        if request.method == 'POST':
+            form = CreateUserForm(request.POST)
+            if form.is_valid():
+                form.save()
+                user = form.cleaned_data.get('username')
+                messages.success(request, 'Account was created for ' + user)
+
+                return redirect('shop')
+
+        context = {'form': form}
+        return render(request, 'account/register.html', context)
+
+def loginPage(request):
+
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('shop')
+        else:
+            messages.info(request, 'Username and Password is incorrect')
+    context = {}
+    return render(request, 'account/login.html', context)
+
+
+def logoutUser(request):
+    logout(request)
+    return redirect('login')

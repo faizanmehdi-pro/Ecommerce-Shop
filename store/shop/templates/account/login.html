@@ -1,0 +1,48 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+<html lang="en" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+<body>
+{% block content %}
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
+        <div class="card card-signin my-5">
+          <div class="card-body">
+            <h5 class="card-title text-center">Login</h5>
+            <form action="" method="POST" class="form-signin">
+              {% csrf_token %}
+              <div class="form-label-group">
+                <label>Username</label>
+                <input type="text" name="username" placeholder="Username...">
+              </div>
+              <br>
+              <div class="form-label-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Password...">
+              </div>
+              <br>
+              <button class="btn btn-lg btn-primary btn-block text-uppercase" type="submit">Login</button>
+            </form>
+
+              <br>
+            {% for message in messages %}
+					<p id="messages">{{message}}</p>
+            {% endfor %}
+
+              <div class="mt-4">
+                <div class="d-flex justify-content-center links">
+                  Don't have account? <a href="{% url 'register' %}" class="ml-2">Register</a>
+              {{form.errors}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock content %}
+</body>
+</html>
