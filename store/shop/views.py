@@ -1,8 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 import json
-from django.contrib.auth.forms import UserCreationForm
-from django.core.mail import EmailMessage
 from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -18,6 +16,7 @@ def index(request):
     return render(request, 'shop/shop.html', context)
 
 
+# Restricting the users access
 @login_required(login_url='login')
 def shop(request):
     products = Product.objects.all()
@@ -29,37 +28,31 @@ def shop(request):
 def cart(request):
     # Authenticating the user
     if request.user.is_authenticated:
-        # Getting customer using OneToOne Relationship
-        customer = request.user.customer
+        user = request.user
         # Getting the order object if not then creating it
-        order, created = Order.objects.get_or_create(customer=customer, complete=False)
+        order, created = Order.objects.get_or_create(user=user, complete=False)
         # Looking up in the orderitems
         # parent.child_set (All in lower-case). It is a way to look into child
         items = order.orderitem_set.all()
-    else:
-        items = []
-        order = {'get_cart_total': 0, 'get_cart_items': 0}
 
     context = {'items': items, 'order': order}
     return render(request, 'shop/cart.html', context)
 
 
 def updateItem(request):
+    # Getting json data from fetch API
     data = json.loads(request.body)
     productId = data['productId']
     action = data['action']
-    print("ID is: ", productId)
-    print("Action is: ", action)
-
-    customer = request.user.customer
+    # Getting user
+    user = request.user
     product = Product.objects.get(id=productId)
-    order, created = Order.objects.get_or_create(customer=customer, complete=False)
+    order, created = Order.objects.get_or_create(user=user, complete=False)
     orderItem, created = OrderItem.objects.get_or_create(order=order, product=product)
 
+    # Adding the items will increase the orderItem quantity
     if action == 'add':
         orderItem.quantity = (orderItem.quantity + 1)
-    elif action == 'remove':
-        orderItem.quantity = (orderItem.quantity - 1)
 
     orderItem.save()
 
@@ -71,13 +64,16 @@ def updateItem(request):
 
 @login_required(login_url='login')
 def placeorder(request):
-    template = render_to_string('shop/email_template.html', {'name': request.user.customer.name})
-    customer_email = request.user.customer.email
+    # Making the template
+    template = render_to_string('shop/email_template.html')
+    # Getting user email
+    user_email = request.user.email
+    # Django send_email (For sending email to user and Admin mail accounts)
     send_mail(
         'Order Placed',
         template,
         'settings.EMAIL_HOST_USER',
-        [customer_email, 'faizanmehdi572@gmail.com'],
+        [user_email, 'EMAIL_HOST_USER'],
     )
     return redirect('shop')
     context = {}
@@ -85,12 +81,15 @@ def placeorder(request):
 
 
 def registerPage(request):
+    # If already a user than redirect to shop page.
     if request.user.is_authenticated:
         return redirect('shop')
     else:
+        # Using CreateUserForm from forms.py
         form = CreateUserForm()
         if request.method == 'POST':
             form = CreateUserForm(request.POST)
+            # Validating
             if form.is_valid():
                 form.save()
                 user = form.cleaned_data.get('username')
@@ -100,6 +99,7 @@ def registerPage(request):
 
         context = {'form': form}
         return render(request, 'account/register.html', context)
+
 
 def loginPage(request):
     if request.user.is_authenticated:

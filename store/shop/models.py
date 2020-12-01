@@ -1,16 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-
-class Customer(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
-    name = models.CharField(max_length=255, null=True)
-    email = models.CharField(max_length=255, null=True)
-
-    def __str__(self):
-        return str(self.name)
-
-
+# Product Table
 class Product(models.Model):
     CATEGORY = (
         ('indoor', 'indoor'),
@@ -33,8 +24,9 @@ class Product(models.Model):
         return url
 
 
+# Order Table
 class Order(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     date_ordered = models.DateTimeField(auto_now_add=True)
     complete = models.BooleanField(default=False)
     transaction_id = models.CharField(max_length=100, null=True)
@@ -42,12 +34,14 @@ class Order(models.Model):
     def __str__(self):
         return str(self.id)
 
+    # Using decorater to make function for getting the cart total ammount
     @property
     def get_cart_total(self):
         order_items = self.orderitem_set.all()
         total = sum([item.get_total for item in order_items])
         return total
 
+    # Using decorater to make function for getting the cart total items
     @property
     def get_cart_items(self):
         order_items = self.orderitem_set.all()
@@ -55,6 +49,7 @@ class Order(models.Model):
         return total
 
 
+# OrderItems Table
 class OrderItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True)
     order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True)
