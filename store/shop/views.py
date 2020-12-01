@@ -17,11 +17,13 @@ def index(request):
     context = {}
     return render(request, 'shop/shop.html', context)
 
+
 @login_required(login_url='login')
 def shop(request):
     products = Product.objects.all()
     context = {'products': products}
     return render(request, 'shop/shop.html', context)
+
 
 @login_required(login_url='login')
 def cart(request):
@@ -67,15 +69,17 @@ def updateItem(request):
     return JsonResponse("Item is added", safe=False)
 
 
+@login_required(login_url='login')
 def placeorder(request):
     template = render_to_string('shop/email_template.html', {'name': request.user.customer.name})
-
+    customer_email = request.user.customer.email
     send_mail(
-        'Thank you for placing the order',
+        'Order Placed',
         template,
-        'faizanmehdi572@gmail.com',
-        ['faizanmehdi572@gmail.com'],
-        )
+        'settings.EMAIL_HOST_USER',
+        [customer_email, 'faizanmehdi572@gmail.com'],
+    )
+    return redirect('shop')
     context = {}
     return render(request, 'shop/shop.html', context)
 
@@ -98,6 +102,8 @@ def registerPage(request):
         return render(request, 'account/register.html', context)
 
 def loginPage(request):
+    if request.user.is_authenticated:
+        return redirect('shop')
 
     if request.method == 'POST':
         username = request.POST.get('username')
